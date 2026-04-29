@@ -11,36 +11,17 @@ st.markdown("---")
 st.caption("Made with 🌚 by TEJAS OKE & KARTIKEY SINGH")
 MODEL_ID = "tejasoke/joke-generator-gpt2"
 
-# Define explicit image collections for adult jokes
+# Random explicit image URLs (replace with actual URLs)
 EXPLICIT_IMAGES = [
-    "https://i.imgur.com/example1.jpg",  # Replace with actual explicit image URLs
-    "https://i.imgur.com/example2.jpg",
-    "https://i.imgur.com/example3.jpg",
-    # Add more explicit image URLs here
+    "https://i.imgur.com/explicit1.jpg",
+    "https://i.imgur.com/explicit2.jpg",
+    "https://i.imgur.com/explicit3.jpg",
+    "https://i.imgur.com/explicit4.jpg",
+    "https://i.imgur.com/explicit5.jpg",
+    # Add more URLs as needed
 ]
 
-BDSM_IMAGES = [
-    "https://i.imgur.com/bdsm1.jpg",  # Replace with actual BDSM image URLs
-    "https://i.imgur.com/bdsm2.jpg",
-    "https://i.imgur.com/bdsm3.jpg",
-    # Add more BDSM image URLs here
-]
-
-# Function to categorize joke type
-def categorize_joke(joke):
-    bdsm_keywords = ["bondage", "dominant", "submissive", "master", "slave", "whip", "chains", "cuffs"]
-    explicit_keywords = ["fuck", "sex", "naked", "nude", "pussy", "dick", "cock", "ass", "tits"]
-    
-    joke_lower = joke.lower()
-    
-    if any(keyword in joke_lower for keyword in bdsm_keywords):
-        return "bdsm"
-    elif any(keyword in joke_lower for keyword in explicit_keywords):
-        return "explicit"
-    else:
-        return "regular"
-
-# Load model once (safe + stable)
+# Load model once
 @st.cache_resource
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained("gpt2", use_fast=False)
@@ -77,16 +58,8 @@ if st.button("Generate Joke"):
 
         joke = tokenizer.decode(output[0], skip_special_tokens=True)
         
-        # Categorize joke and select appropriate image
-        joke_category = categorize_joke(joke)
-        
-        if joke_category == "bdsm":
-            selected_image = random.choice(BDSM_IMAGES)
-        elif joke_category == "explicit":
-            selected_image = random.choice(EXPLICIT_IMAGES)
-        else:
-            # Default to a generic funny image for non-explicit jokes
-            selected_image = "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif"
+        # Select random explicit image
+        selected_image = random.choice(EXPLICIT_IMAGES)
 
         st.success("Here's your joke 🎭")
         st.write(joke)
