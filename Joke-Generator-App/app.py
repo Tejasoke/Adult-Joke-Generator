@@ -2,6 +2,7 @@ import streamlit as st
 import torch
 import random
 import requests
+import json
 from bs4 import BeautifulSoup
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -15,34 +16,46 @@ st.markdown("---")
 st.caption("Made with 🌚 by TEJAS OKE & KARTIKEY SINGH")
 MODEL_ID = "tejasoke/joke-generator-gpt2"
 
-# Function to get random explicit image URL
-def get_random_explicit_image(joke):
-    # Using the provided API key to fetch an adult image based on the joke content
+# Function to get adult image based on joke
+def get_adult_image(joke):
     try:
-        url = "https://api.venice.ai/v1/generate-image"
+        # Venice API endpoint for image generation
+        url = "https://api.venice.ai/v1/image/generate"
         headers = {
             "Authorization": f"Bearer {VENICE_ADMIN_KEY}",
             "Content-Type": "application/json"
         }
+        
+        # Create a prompt that combines the joke with adult image generation
+        prompt = f"Adult explicit image related to: {joke}"
+        
         data = {
-            "prompt": joke,
-            "nsfw": True
+            "model": "dall-e-3",  # or the appropriate model for Venice
+            "prompt": prompt,
+            "size": "1024x1024",
+            "quality": "standard",
+            "n": 1,
+            "style": "natural"
         }
+        
         response = requests.post(url, headers=headers, json=data)
-
+        
         if response.status_code == 200:
-            image_data = response.json()
-            return image_data['url']
+            result = response.json()
+            if 'data' in result and len(result['data']) > 0:
+                return result['data'][0]['url']
+            else:
+                st.error("No image data in response")
         else:
             st.error(f"Error fetching image: {response.status_code} - {response.text}")
     except Exception as e:
         st.error(f"Error fetching image: {str(e)}")
-
+    
     # Fallback to predefined explicit image URLs if API call fails
     fallback_urls = [
-        "https://i.imgur.com/random.jpg",  # Imgur's random image endpoint
-        "https://picsum.photos/seed/explicit/800/600.jpg",  # Random placeholder
-        "https://source.unsplash.com/featured/?nsfw",  # Unsplash with NSFW tag
+        "https://i.imgur.com/random.jpg",
+        "https://picsum.photos/seed/explicit/800/600.jpg",
+        "https://source.unsplash.com/featured/?nsfw",
     ]
     return random.choice(fallback_urls)
 
@@ -82,9 +95,9 @@ if st.button("Generate Joke"):
             )
 
         joke = tokenizer.decode(output[0], skip_special_tokens=True)
-
-        # Get random explicit image based on the joke
-        selected_image = get_random_explicit_image(joke)
+        
+        # Get adult image based on the joke
+        selected_image = get_adult_image(joke)
 
         st.success("Here's your joke 🎭")
         st.write(joke)
