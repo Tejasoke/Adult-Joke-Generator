@@ -25,7 +25,7 @@ model, tokenizer = load_model()
 # Input
 topic = st.text_input(
     "Enter a topic:",
-    placeholder="e.g. programming, exams, cats"
+    placeholder="e.g. any topic including adult words"
 )
 
 # Generate joke
