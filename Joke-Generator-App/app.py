@@ -3,10 +3,11 @@ import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 st.set_page_config(page_title="AI Joke Generator", page_icon="😂")
-
+st.sidebar.info("Built by TEJAS OKE & KARTIKEY SINGH")
 st.title("😂 AI Joke Generator")
 st.caption("Give me a topic, I’ll try to be funny.")
-
+st.markdown("---")
+st.caption("Made with 🌚 by TEJAS OKE & KARTIKEY SINGH")
 MODEL_ID = "tejasoke/joke-generator-gpt2"
 
 # Load model once (safe + stable)
