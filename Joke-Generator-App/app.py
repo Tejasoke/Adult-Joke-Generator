@@ -1,29 +1,46 @@
 import streamlit as st
 import torch
 import random
-import time
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-# =========================
-# PAGE CONFIG
-# =========================
-st.set_page_config(page_title="Comedy Courtroom ⚖️", page_icon="🎭")
-
-st.title("⚖️ Comedy Courtroom Simulator")
-st.caption("Where jokes are tried, judged, and sentenced.")
-
-# =========================
-# SIDEBAR
-# =========================
-st.sidebar.title("Court Registry 📜")
+st.set_page_config(page_title="AI Joke Generator", page_icon="😂")
 st.sidebar.info("Built by TEJAS OKE & KARTIKEY SINGH")
-st.sidebar.markdown("Every joke is a defendant in this courtroom.")
-
-# =========================
-# MODEL
-# =========================
+st.title("😂 AI Joke Generator")
+st.caption("Give me a topic, I'll try to be funny.")
+st.markdown("---")
+st.caption("Made with 🌚 by TEJAS OKE & KARTIKEY SINGH")
 MODEL_ID = "tejasoke/joke-generator-gpt2"
 
+# Define explicit image collections for adult jokes
+EXPLICIT_IMAGES = [
+    "https://i.imgur.com/example1.jpg",  # Replace with actual explicit image URLs
+    "https://i.imgur.com/example2.jpg",
+    "https://i.imgur.com/example3.jpg",
+    # Add more explicit image URLs here
+]
+
+BDSM_IMAGES = [
+    "https://i.imgur.com/bdsm1.jpg",  # Replace with actual BDSM image URLs
+    "https://i.imgur.com/bdsm2.jpg",
+    "https://i.imgur.com/bdsm3.jpg",
+    # Add more BDSM image URLs here
+]
+
+# Function to categorize joke type
+def categorize_joke(joke):
+    bdsm_keywords = ["bondage", "dominant", "submissive", "master", "slave", "whip", "chains", "cuffs"]
+    explicit_keywords = ["fuck", "sex", "naked", "nude", "pussy", "dick", "cock", "ass", "tits"]
+    
+    joke_lower = joke.lower()
+    
+    if any(keyword in joke_lower for keyword in bdsm_keywords):
+        return "bdsm"
+    elif any(keyword in joke_lower for keyword in explicit_keywords):
+        return "explicit"
+    else:
+        return "regular"
+
+# Load model once (safe + stable)
 @st.cache_resource
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained("gpt2", use_fast=False)
@@ -33,67 +50,17 @@ def load_model():
 
 model, tokenizer = load_model()
 
-# =========================
-# COURT DATA
-# =========================
-MUGSHOTS = [
-    "https://i.imgur.com/1Q9Z1Zb.png",
-    "https://i.imgur.com/8Km9tLL.png",
-    "https://i.imgur.com/4M34hi2.png",
-    "https://i.imgur.com/6Q7XQ0p.png",
-]
+# Input
+topic = st.text_input(
+    "Enter a topic:",
+    placeholder="e.g. any topic including adult words"
+)
 
-CHARGES = [
-    "Charged with excessive puns",
-    "Suspected of illegal laughter",
-    "Arrested for cringe distribution",
-    "Convicted of dad-joke violations",
-    "Under trial for humor overload",
-    "Wanted for emotional giggle damage",
-]
-
-VERDICTS = [
-    "GUILTY 😂 Sentence: 10 more jokes",
-    "INNOCENT… but barely",
-    "GUILTY: laughter overload confirmed",
-    "CASE DISMISSED (too funny to judge)",
-    "MAXIMUM SENTENCE: stand-up comedy career",
-]
-
-# =========================
-# INPUT SECTION
-# =========================
-topic = st.text_input("Enter crime (topic):", placeholder="e.g. school, love, coding, etc.")
-
-st.markdown("---")
-
-# =========================
-# COURTROOM LAYOUT
-# =========================
-col1, col2 = st.columns([1, 2])
-
-with col1:
-    st.subheader("📂 Defendant File")
-
-with col2:
-    st.subheader("⚖️ Trial Chamber")
-
-# =========================
-# BUTTON
-# =========================
-if st.button("Summon Defendant 🎭"):
-
+# Generate joke
+if st.button("Generate Joke"):
     if not topic.strip():
-        st.warning("Court needs a case to proceed 😅")
+        st.warning("Please enter a topic first 😅")
     else:
-
-        # loading animation
-        loading = st.empty()
-        loading.info("📂 Opening criminal joke file...")
-
-        time.sleep(0.7)
-
-        # generate joke
         input_ids = tokenizer.encode(topic, return_tensors="pt")
 
         with torch.no_grad():
@@ -109,35 +76,18 @@ if st.button("Summon Defendant 🎭"):
             )
 
         joke = tokenizer.decode(output[0], skip_special_tokens=True)
+        
+        # Categorize joke and select appropriate image
+        joke_category = categorize_joke(joke)
+        
+        if joke_category == "bdsm":
+            selected_image = random.choice(BDSM_IMAGES)
+        elif joke_category == "explicit":
+            selected_image = random.choice(EXPLICIT_IMAGES)
+        else:
+            # Default to a generic funny image for non-explicit jokes
+            selected_image = "https://media.giphy.com/media/3o7aD2saalBwwftBIY/giphy.gif"
 
-        # select random court elements
-        mugshot = random.choice(MUGSHOTS)
-        charge = random.choice(CHARGES)
-        verdict = random.choice(VERDICTS)
-
-        loading.empty()
-
-        # =========================
-        # DISPLAY DEFENDANT
-        # =========================
-        with col1:
-            st.image(mugshot, caption="Suspect in custody 📸", width=200)
-            st.error(f"⚖️ Charge: {charge}")
-
-        # =========================
-        # DISPLAY TRIAL
-        # =========================
-        with col2:
-            st.success("📜 Evidence Submitted")
-            st.write(joke)
-
-            st.markdown("---")
-
-            st.subheader("🧑‍⚖️ Judge's Verdict")
-            st.warning(verdict)
-
-# =========================
-# FOOTER
-# =========================
-st.markdown("---")
-st.caption("⚖️ In this courtroom, humor is both the crime and the punishment.")
+        st.success("Here's your joke 🎭")
+        st.write(joke)
+        st.image(selected_image, width=400)
