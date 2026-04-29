@@ -1,6 +1,8 @@
 import streamlit as st
 import torch
 import random
+import requests
+from bs4 import BeautifulSoup
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 st.set_page_config(page_title="AI Joke Generator", page_icon="😂")
@@ -11,15 +13,37 @@ st.markdown("---")
 st.caption("Made with 🌚 by TEJAS OKE & KARTIKEY SINGH")
 MODEL_ID = "tejasoke/joke-generator-gpt2"
 
-# Random explicit image URLs (replace with actual URLs)
-EXPLICIT_IMAGES = [
-    "https://i.imgur.com/explicit1.jpg",
-    "https://i.imgur.com/explicit2.jpg",
-    "https://i.imgur.com/explicit3.jpg",
-    "https://i.imgur.com/explicit4.jpg",
-    "https://i.imgur.com/explicit5.jpg",
-    # Add more URLs as needed
-]
+# Function to get random explicit image URL
+def get_random_explicit_image():
+    # Method 1: Using random image from Imgur (explicit category)
+    try:
+        # Using Imgur's gallery endpoint for random images
+        # Note: This is a simplified approach - actual implementation might need OAuth
+        imgur_url = "https://api.imgur.com/3/gallery/random/viral/0.json"
+        headers = {"Authorization": "Client-ID YOUR_CLIENT_ID"}  # You'd need to register for an API key
+        
+        # Try without auth first (public images)
+        response = requests.get("https://imgur.com/search/score?q=nsfw", headers={'User-Agent': 'Mozilla/5.0'})
+        
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            images = soup.find_all('img')
+            if images:
+                # Get random image from the results
+                img_url = random.choice(images).get('src')
+                if img_url and not img_url.startswith('http'):
+                    img_url = 'https:' + img_url
+                return img_url
+    except Exception as e:
+        st.error(f"Error fetching image: {str(e)}")
+    
+    # Method 2: Fallback to predefined explicit image URLs
+    fallback_urls = [
+        "https://i.imgur.com/random.jpg",  # Imgur's random image endpoint
+        "https://picsum.photos/seed/explicit/800/600.jpg",  # Random placeholder
+        "https://source.unsplash.com/featured/?nsfw",  # Unsplash with NSFW tag
+    ]
+    return random.choice(fallback_urls)
 
 # Load model once
 @st.cache_resource
@@ -58,8 +82,8 @@ if st.button("Generate Joke"):
 
         joke = tokenizer.decode(output[0], skip_special_tokens=True)
         
-        # Select random explicit image
-        selected_image = random.choice(EXPLICIT_IMAGES)
+        # Get random explicit image
+        selected_image = get_random_explicit_image()
 
         st.success("Here's your joke 🎭")
         st.write(joke)
